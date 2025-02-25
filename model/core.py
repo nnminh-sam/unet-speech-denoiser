@@ -11,10 +11,6 @@ F: Function like padding for model construction
 
 
 class PreactResBlock(nn.Sequential):
-    """
-    Residual Block with Pre-activation
-    """
-
     def __init__(self, dim):
         super().__init__(
             nn.GroupNorm(dim // 16, dim),
@@ -30,21 +26,23 @@ class PreactResBlock(nn.Sequential):
 
 
 class UNetBlock(nn.Module):
-    """
-    Encoder & Decoder core
-    """
-
     def __init__(self, input_dim, output_dim=None, scale_factor=1.0):
         super().__init__()
+
         if output_dim is None:
             output_dim = input_dim
+
         self.pre_conv = nn.Conv2d(input_dim, output_dim, 3, padding=1)
         self.res_block1 = PreactResBlock(output_dim)
         self.res_block2 = PreactResBlock(output_dim)
+
+        # Downsampling or Upsampling
         self.downsample = self.upsample = nn.Identity()
         if scale_factor > 1:
+            # Perfoming upsampling
             self.upsample = nn.Upsample(scale_factor=scale_factor)
         elif scale_factor < 1:
+            # Perfoming Downsampling
             self.downsample = nn.Upsample(scale_factor=scale_factor)
 
     def forward(self, x, h=None):
